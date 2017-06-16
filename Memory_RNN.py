@@ -33,7 +33,7 @@ def generateData(shift_batch):
                                        batch_size=vector_size)
     batch = next(batches)
     x, _ = helpers.batch(batch)
-    if shift_batch == 0:
+    if shift_batch == 0:  # Learning the same sequence
         y = x
     else:
         y_inter2 = helpers.shifter(batch, shift_batch)
