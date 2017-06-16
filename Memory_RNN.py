@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 import helpers
 # hyperparams
-num_epochs = 1000
+num_epochs = 10000
 total_series_length = 100
 truncated_backprop_length = 5
 state_size = 4  # Number of neurons in the hidden layer
@@ -23,19 +23,21 @@ num_batches = total_series_length//batch_size//truncated_backprop_length
 # range of 10,000. The data points are zero padded so as to make a constant
 # lenght of 100
 
+shift_batch = 0
 
-def generateData():
+
+def generateData(shift_batch):
     vector_size = 100
-    shift_batch = 1
     batches = helpers.random_sequences(length_from=3, length_to=8,
                                        vocab_lower=0, vocab_upper=2,
                                        batch_size=vector_size)
     batch = next(batches)
     x, _ = helpers.batch(batch)
-    # y_inter2 = np.zeros(shape=(x.shape[0],x.shape[1]),dtype=np.int32)
-    y_inter2 = helpers.shifter(batch, shift_batch)
-    y, _ = helpers.batch(y_inter2)
-
+    if shift_batch == 0:
+        y = x
+    else:
+        y_inter2 = helpers.shifter(batch, shift_batch)
+        y, _ = helpers.batch(y_inter2)
     return x, y
 
 # Step 2 - Build the Model
@@ -92,9 +94,9 @@ with tf.Session() as sess:
     loss_list = []
     for epoch_idx in range(num_epochs):
         # Generate new data at every epoch
-        x, y = generateData()
+        x, y = generateData(shift_batch)
         while (len(y) > 8 or len(y) < 8):
-            x, y = generateData()
+            x, y = generateData(shift_batch)
         # Empty hidden state
         _current_state = np.zeros((batch_size, state_size))
 
