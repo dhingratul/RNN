@@ -4,7 +4,7 @@
 Created on Thu Jun 15 20:54:58 2017
 
 @author: dhingratul
-Code from llsourcell tutorials on SeqToSeq models
+Base code from llsourcell tutorials on SeqToSeq models
 """
 import numpy as np
 
@@ -64,3 +64,16 @@ def random_sequences(length_from, length_to,
                               size=random_length()).tolist()
             for _ in range(batch_size)
             ]
+
+
+def shifter(batch, shift_batch):
+    y_inter2 = []
+    # y, _ = helpers.batch([(sequence) for sequence in batch])
+    y_intermed = [[int(''.join(map(str, sequence)), 2)] for sequence in batch]
+    for i in range(len(y_intermed)):
+        y_intermed[i][0] += shift_batch
+    for j in range(len(y_intermed)):
+        y_inter2.append(list(bin(y_intermed[j][0])[2:]))
+    for k in range(len(y_inter2)):
+        y_inter2[k] = list(map(int, y_inter2[k]))
+    return y_inter2
