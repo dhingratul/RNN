@@ -8,14 +8,14 @@ Created on Wed May 24 11:28:50 2017
 from __future__ import print_function, division
 import numpy as np
 import tensorflow as tf
-import random
+import helpers
 # hyperparams
 num_epochs = 1000
 total_series_length = 100
-truncated_backprop_length = 1
+truncated_backprop_length = 5
 state_size = 4  # Number of neurons in the hidden layer
 num_classes = 2  # Data is binary, 0 / 1 = Two Classes
-batch_size = 5
+batch_size = 8
 num_batches = total_series_length//batch_size//truncated_backprop_length
 
 # Step 1 - Data Generation
@@ -25,15 +25,18 @@ num_batches = total_series_length//batch_size//truncated_backprop_length
 
 
 def generateData():
-    x_int = random.randint(1, 10001)
-    x = str(x_int)
-    x = x.zfill(100)
-    x = np.array(list(x))
-    y = bin(x_int)[2:].zfill(100)
-    y = np.array(list(y))
-    x = x.reshape((batch_size, -1))
-    y = y.reshape((batch_size, -1))
-    return (x, y)
+    vector_size = 100
+    shift_batch = 1
+    batches = helpers.random_sequences(length_from=3, length_to=8,
+                                       vocab_lower=0, vocab_upper=2,
+                                       batch_size=vector_size)
+    batch = next(batches)
+    x, _ = helpers.batch(batch)
+    # y_inter2 = np.zeros(shape=(x.shape[0],x.shape[1]),dtype=np.int32)
+    y_inter2 = helpers.shifter(batch, shift_batch)
+    y, _ = helpers.batch(y_inter2)
+
+    return x, y
 
 # Step 2 - Build the Model
 batchX_placeholder = tf.placeholder(
@@ -84,11 +87,14 @@ total_loss = tf.reduce_mean(losses)
 train_step = tf.train.AdagradOptimizer(0.2).minimize(total_loss)
 # Step 3 Training the network
 with tf.Session() as sess:
+    y = np.zeros([batch_size])
     sess.run(tf.global_variables_initializer())
     loss_list = []
     for epoch_idx in range(num_epochs):
         # Generate new data at every epoch
         x, y = generateData()
+        while (len(y) > 8 or len(y) < 8):
+            x, y = generateData()
         # Empty hidden state
         _current_state = np.zeros((batch_size, state_size))
 
@@ -111,7 +117,7 @@ with tf.Session() as sess:
                                 batchY_placeholder: batchY,
                                 init_state: _current_state
                                 })
-
+            # print(batchX, batchY)
             loss_list.append(_total_loss)
 
             if batch_idx % 100 == 0:
