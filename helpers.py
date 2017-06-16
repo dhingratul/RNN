@@ -4,8 +4,8 @@
 Created on Thu Jun 15 20:54:58 2017
 
 @author: dhingratul
+Code from llsourcell tutorials on SeqToSeq models
 """
-
 import numpy as np
 
 
